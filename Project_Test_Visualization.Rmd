@@ -1,0 +1,244 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+rm(list=ls())
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(cowplot)
+library(tidyr)
+```
+
+```{r}
+data <- read.csv("data.csv")
+```
+
+```{r}
+data <- data %>% mutate(highschool_training_days_per_week = recode(highschool_training_days_per_week, "DID NOT TRAIN" = 0, "0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 4, "5" = 5, "6" = 6, "7" = 7))
+
+
+data <- data %>% mutate(college_train_days_per_week = recode(college_train_days_per_week, "DO NOT TRAIN" = 0, "0" = 0, "1" = 1, "2" = 2, "3" = 3, "4" = 4, "5" = 5, "6" = 6, "7" = 7))
+
+data <- data %>% mutate(highschool_gpa = as.numeric(highschool_gpa))
+
+data <- na.omit(data)
+```
+
+```{r}
+plot1data <- data %>% select(college_gpa, highschool_training_days_per_week)
+plot1data2 <- data %>% select(college_gpa, college_train_days_per_week)
+plot1data3 <- data %>% select(highschool_gpa, highschool_training_days_per_week)
+
+plot1data <- plot1data %>%
+  filter(!(college_gpa %in% c("NO GPA YET", "NA", "IP")))
+plot1data2 <- plot1data2 %>%
+  filter(!(college_gpa %in% c("NO GPA YET", "NA", "IP")))
+plot1data3 <- plot1data3 %>%
+  filter(!(highschool_gpa %in% c("UNKNOWN")))
+
+#plot1data <- plot1data %>%
+ # filter(highschool_training_days_per_week != "0")
+#This code would make the graph below not include students who did not train in high school.
+
+plot1data2 <- plot1data2 %>% 
+  filter(college_train_days_per_week != "0")
+
+plot1data <- na.omit(plot1data)
+plot1data2 <- na.omit(plot1data2)
+plot1data3 <- na.omit(plot1data3)
+```
+
+```{r}
+plot1data_counted <- plot1data %>%
+  group_by(highschool_training_days_per_week, college_gpa) %>%
+  summarise(Frequency = n())
+
+plot1data_counted$Frequency <- as.factor(plot1data_counted$Frequency)
+
+ggplot(plot1data_counted) + 
+  geom_point(aes(x = highschool_training_days_per_week, y = college_gpa, size = Frequency, color = Frequency)) +
+  scale_color_brewer(palette = "Blues") +
+  theme_minimal()
+```
+
+```{r}
+plot1data2_counted <- plot1data2 %>%
+  group_by(college_train_days_per_week, college_gpa) %>%
+  summarise(Frequency = n())
+
+plot1data2_counted$Frequency <- as.factor(plot1data2_counted$Frequency)
+
+ggplot(plot1data2_counted) + 
+  geom_point(aes(x = college_train_days_per_week, y = college_gpa, size = Frequency, color = Frequency)) +
+  scale_color_brewer(palette = "Blues") +
+  theme_minimal()
+```
+
+
+```{r}
+plot1data3_counted <- plot1data3 %>%
+  group_by(highschool_training_days_per_week, highschool_gpa) %>%
+  summarise(Frequency = n())
+
+plot1data3_counted$Frequency <- as.factor(plot1data3_counted$Frequency)
+
+ggplot(plot1data3_counted) + 
+  geom_point(aes(x = highschool_training_days_per_week, y = highschool_gpa, size = Frequency, color = Frequency)) +
+  scale_color_brewer(palette = "Blues") +
+  theme_minimal()
+```
+
+
+```{r}
+ggplot(plot1data, aes(x = as.numeric(college_gpa))) +
+  geom_histogram(binwidth = 0.1, fill = "blue", color = "green") +
+  labs(title = "Distribution of College GPA", x = "College GPA", y = "Number of Students") +
+  theme_minimal()
+```
+
+```{r}
+plot2data <- data %>% select(county_home, college_teams)
+
+plot2data <- plot2data %>%
+  filter(!is.na(college_teams), college_teams != "")
+plot2data <- plot2data %>%
+  filter(county_home != "US")
+plot2data <- plot2data %>%
+  mutate(college_teams = trimws(toupper(college_teams))) %>%
+  mutate(college_teams = ifelse(college_teams %in% c("NONE", "NONE,"), "NO SPORT", college_teams))
+
+plot2data <- data %>%
+  select(county_home, college_teams) %>%
+  na.omit() %>%
+  filter(!is.na(college_teams), college_teams != "") %>%
+  filter(county_home != "US") %>%
+  separate_rows(college_teams, sep = ",") %>%
+  mutate(college_teams = trimws(toupper(college_teams))) %>%
+  mutate(college_teams = ifelse(college_teams %in% c("NONE", "NONE,", ""), "NO SPORT", college_teams))
+```
+
+```{r}
+plot2data %>%
+  count(county_home, college_teams) %>%
+  ggplot(aes(x = county_home, y = n, fill = college_teams)) +
+  geom_col() +
+  labs(title = "Sport Participation by County (Stacked)", x = "County", y = "Number of Participants", fill = "Sport") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+plot3data <- data %>%
+  select(gender, highschool_training_days_per_week) %>%
+  filter(!is.na(gender), !is.na(highschool_training_days_per_week))
+
+plot3data <- plot3data %>%
+  mutate(gender = ifelse(gender %in% c("MALE", "FEMALE"), gender, "Nonbinary"))
+
+ggplot(plot3data, aes(x = highschool_training_days_per_week, fill = gender)) +
+  geom_histogram(binwidth = 1, position = "dodge") +
+  labs(title = "High School Training Intensity Distribution by Gender", x = "High School Training Days per Week", y = "Number of Students", fill = "Gender") +
+  theme_minimal()
+```
+
+```{r}
+plot3data2 <- data %>%
+  select(gender, college_train_days_per_week) %>%
+  filter(!is.na(gender), !is.na(college_train_days_per_week))
+
+plot3data2 <- plot3data2 %>%
+  mutate(gender = ifelse(gender %in% c("MALE", "FEMALE"), gender, "Nonbinary"))
+
+ggplot(plot3data2, aes(x = college_train_days_per_week, fill = gender)) +
+  geom_histogram(binwidth = 1, position = "dodge") +
+  labs(title = "College Training Intensity Distribution by Gender", x = "College Training Days per Week", y = "Number of Students", fill = "Gender") +
+  theme_minimal()
+```
+
+```{r}
+plot4data <- data %>%
+  select(gender, college_gpa) %>%
+  filter(!is.na(gender), !is.na(college_gpa), college_gpa != "") %>%
+  mutate(college_gpa = as.numeric(college_gpa), gender = ifelse(gender %in% c("MALE", "FEMALE"), gender, "Nonbinary"))
+
+ggplot(plot4data, aes(x = college_gpa, fill = gender)) +
+  geom_histogram(binwidth = 0.1, position = "dodge") +
+  labs(title = "College GPA Distribution by Gender", x = "College GPA", y = "Number of Students", fill = "Gender") +
+  theme_minimal()
+```
+
+```{r}
+numdata <- select_if(data, is.numeric)
+cordata <- cor(numdata)
+corrplot(cordata, method = "number", bg = "brown")
+```
+
+```{r}
+athlete_data <- data %>%filter(college_train_days_per_week > 0, !(college_gpa %in% c("NO GPA YET", "NA", "IP")))
+nonathlete_data <- data %>%filter(college_train_days_per_week < 1, !(college_gpa %in% c("NO GPA YET", "NA", "IP")))
+```
+
+```{r}
+athlete_data <- athlete_data %>% mutate(Group = "Athletes")
+nonathlete_data <- nonathlete_data %>% mutate(Group = "Non-Athletes")
+```
+
+```{r}
+ggplot() +
+  geom_jitter(data = athlete_data, 
+              aes(x = college_train_days_per_week, y = college_gpa, color = "Athletes"), 
+              width = 0.2, alpha = 0.6) +
+  geom_jitter(data = nonathlete_data, 
+              aes(x = college_train_days_per_week, y = college_gpa, color = "Non-Athletes"), 
+              width = 0.2, alpha = 0.6) +
+  scale_color_manual(values = c("Athletes" = "blue", "Non-Athletes" = "red")) +
+  labs(title = "College GPA by College Training Days per Week",
+       x = "College Training Days per Week",
+       y = "College GPA",
+       color = "Group") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
