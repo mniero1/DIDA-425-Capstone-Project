@@ -61,6 +61,7 @@ plot1data_counted$Frequency <- as.factor(plot1data_counted$Frequency)
 
 ggplot(plot1data_counted) + 
   geom_point(aes(x = highschool_training_days_per_week, y = college_gpa, size = Frequency, color = Frequency)) +
+  labs(title = "College GPA vs High School Training Days per Week", x = "High School Training Days per Week", y = "College GPA")+
   scale_color_brewer(palette = "Reds") +
   theme_minimal()
 ```
@@ -74,6 +75,7 @@ plot1data2_counted$Frequency <- as.factor(plot1data2_counted$Frequency)
 
 ggplot(plot1data2_counted) + 
   geom_point(aes(x = college_train_days_per_week, y = college_gpa, size = Frequency, color = Frequency)) +
+  labs(title = "College GPA vs. College Training Days per Week", x = "College Training Days per Week", y = "College GPA") +
   scale_color_brewer(palette = "Reds") +
   theme_minimal()
 ```
@@ -88,6 +90,7 @@ plot1data3_counted$Frequency <- as.factor(plot1data3_counted$Frequency)
 
 ggplot(plot1data3_counted) + 
   geom_point(aes(x = highschool_training_days_per_week, y = highschool_gpa, size = Frequency, color = Frequency)) +
+  labs(title = "High School GPA vs High School Training Days per Week", x = "High School Training Days per Week", y = "High School GPA") +
   scale_color_brewer(palette = "Reds") +
   theme_minimal()
 ```
@@ -202,44 +205,3 @@ ggplot() +
        color = "Group") +
   theme_minimal()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
