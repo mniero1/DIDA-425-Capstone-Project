@@ -56,6 +56,3 @@ Most student research projects focus solely on presenting results. By openly doc
 
 This project embodies a crucial lesson in research: sometimes the most valuable outcome isn't confirming your hypothesis—it's understanding why your methodology fell short and using that knowledge to help others succeed. Our pivot from research project to educational toolkit represents our commitment to making data analysis more accessible, transparent, and ultimately more rigorous for future student researchers.
 
----
-
-**Note**: While our original research question remained unanswered due to methodological limitations, the framework we developed ensures that future students will be better equipped to design studies that can actually answer their questions reliably.
